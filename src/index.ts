@@ -26,8 +26,8 @@ logger.info('connecting to database...')
 
 mongoose.connect(dbURI, options).then(() => {
   logger.info('Mongoose connection done')
-  app.listen(APP_PORT, () => {
-    logger.info(`server listening on ${APP_PORT}`)
+  app.listen(() => {
+    logger.info(`server listening on...`)
   })
 })
   .catch((e) => {
