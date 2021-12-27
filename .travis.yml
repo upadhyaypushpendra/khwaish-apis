@@ -9,7 +9,6 @@ branches:
     - main
 env:
   global:
-    - APP_PORT=9000
     - DB_URI=mongodb://localhost:27017/Mocks
     - JWT_SECRET=somerandomkeyherena
 script:

@@ -79,8 +79,6 @@ yarn test:e2e:watch
 The environment variables can be found and modified in the  `.env`  file. They come with these default values:
 
 ```bash
-# Port number
-APP_PORT=9000
 
 # Prefix app path
 APP_PREFIX_PATH=/

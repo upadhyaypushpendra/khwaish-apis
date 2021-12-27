@@ -6,7 +6,7 @@ import compression from 'compression'
 import cors from 'cors'
 import routes from '@/routes'
 import { morganSuccessHandler, morganErrorHandler } from '@/config/morgan'
-import { IS_TEST, APP_PREFIX_PATH } from '@/config/config'
+import { IS_TEST, APP_PREFIX_PATH, DB_URI } from '@/config/config'
 import httpStatus from 'http-status'
 import ApiError from './utils/ApiError'
 import { errorConverter, errorHandler } from './middlewares/error'
@@ -14,15 +14,25 @@ import passport from 'passport'
 import { anonymousStrategy, jwtStrategy, jwtRefreshStrategy, jwtTemporaryStrategy } from '@/config/passport'
 import swaggerUi from 'swagger-ui-express'
 
+//Set up mongoose connection
+import mongoose from "mongoose"
+const mongoDB = DB_URI;
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "MongoDB connection error:"));
+
 const whitelist = process.env.ALLOWED_ORIGINS.split(",");
 
 const corsOptions = {
-  origin: function (origin: string, callback: (err?: any,value?: boolean) =>void) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
+  origin: function (origin: string, callback: (err?: any, value?: boolean) => void) {
+    // Allowed all origins
+
+    // console.log('DEBUG::origin', origin);
+    // if (whitelist.indexOf(origin) !== -1) {
+    callback(null, true)
+    // } else {
+    //   callback(new Error('Not allowed by CORS'))
+    // }
   }
 };
 
