@@ -54,7 +54,15 @@ router.post('/signup', async (req, res, next) => {
     user.phone = phoneNumber;
     user.about = about;
     user.setPassword(password);
+    user.isNew = true;
+
+    logger.info({
+      message: "Creating user",
+      metadata: user.toJSON(),
+    });
+
     await user.save();
+
 
     const accessToken = await createAccessToken(user.id);
     const refreshToken = await createRefreshToken(user.id);

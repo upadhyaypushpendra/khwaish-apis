@@ -3,8 +3,8 @@ import faker from 'faker'
 const password = 'superpassword'
 
 export const user = {
-  first_name: faker.name.firstName(),
-  last_name: faker.name.lastName(),
-  email: faker.internet.email(),
+  name: faker.name.firstName(),
+  phone: faker.phone.phoneNumber(),
+  about: faker.lorem.sentence(),
   password
 }
