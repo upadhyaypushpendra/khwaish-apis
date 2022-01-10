@@ -10,8 +10,27 @@ const router = express.Router()
 
 router.get('/', passport.authenticate(['jwt', 'anonymous'], { session: false }), async (req, res, next) => {
   logger.debug('%o', req.user)
-  const user = await User.find();
-  res.json(user)
+  let filters;
+  if (req?.query?.input) {
+    const input = req.query.input;
+    filters = {
+      "$or": [
+        {
+          phone: { "$regex": input, "$options": "i" }
+        },
+        {
+          name: { "$regex": input, "$options": "i" }
+        }
+      ]
+    };
+  }
+
+  if (Boolean(filters)) {
+    const users = await User.find(filters);
+    res.json({ users });
+  } else {
+    res.json([]);
+  }
 })
 
 router.get('/:id', passport.authenticate(['jwt'], { session: false }), async (req, res, next) => {
