@@ -23,6 +23,8 @@ router.post('/login', async (req, res, next) => {
   try {
     const { phone, password } = req.body
     const user = await User.findOne({ phone })
+      .populate('friends', { name: 1, phone: 1, about: 1 });
+    
     if (!user || !user.validPassword(password))
       throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, 'Invalid phone or password')
 
@@ -31,7 +33,7 @@ router.post('/login', async (req, res, next) => {
 
 
     res.json({
-      ...user.toJSON(),
+      user,
       tokens: {
         ...accessToken,
         ...refreshToken
@@ -68,7 +70,13 @@ router.post('/signup', async (req, res, next) => {
     const refreshToken = await createRefreshToken(user.id);
 
     res.json({
-      ...user.toJSON(),
+      user: {
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        about: user.about,
+        friends: user.friends,
+      },
       tokens: {
         ...accessToken,
         ...refreshToken
@@ -80,15 +88,21 @@ router.post('/signup', async (req, res, next) => {
   }
 });
 
-router.get('/access', passport.authenticate('jwt-refresh', { session: false }), async (req, res, next) => {
+router.get('/restore', passport.authenticate('jwt-refresh', { session: false }), async (req, res, next) => {
   const { _id } = req.user as any;
 
-  const user = await User.findById(_id);
+  const user = await User
+    .findById(_id, { name: 1, phone: 1, about: 1, friends: 1 })
+    .populate('friends', { name: 1, phone: 1, about: 1 });
+
   if (!user) throw new ApiError(httpStatus.UNAVAILABLE_FOR_LEGAL_REASONS, 'Invalid token');
 
   const accessToken = await createAccessToken(user.id);
 
-  res.status(httpStatus.OK).json(accessToken);
+  res.status(httpStatus.OK).json({
+    ...accessToken,
+    user,
+  });
 });
 
 router.get('/me', passport.authenticate('jwt', { session: false }), async (req, res, next) => {
