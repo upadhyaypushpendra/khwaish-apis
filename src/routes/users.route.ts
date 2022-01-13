@@ -1,4 +1,3 @@
-import logger from '@/config/logger'
 import { User } from '@/models/user.model'
 import ApiError from '@/utils/ApiError'
 import { validateAndParsePhone } from '@/utils/phone'
@@ -9,7 +8,6 @@ import passport from 'passport'
 const router = express.Router()
 
 router.get('/', passport.authenticate(['jwt', 'anonymous'], { session: false }), async (req, res, next) => {
-  logger.debug('%o', req.user)
   let filters;
   if (req?.query?.input) {
     const input = req.query.input;
@@ -26,20 +24,25 @@ router.get('/', passport.authenticate(['jwt', 'anonymous'], { session: false }),
   }
 
   if (Boolean(filters)) {
-    const users = await User.find(filters);
+    const users = await User.find(filters, { name: 1, phone: 1, about: 1 });
     res.json({ users });
   } else {
-    res.json([]);
+    const users = await User.find({}, { name: 1, phone: 1, about: 1 });
+    res.json({
+      error: false,
+      message: "User fetched successfully.",
+      users
+    });
   }
-})
+});
 
-router.get('/:id', passport.authenticate(['jwt'], { session: false }), async (req, res, next) => {
+router.get('/:id', passport.authenticate(['jwt', 'anonymous'], { session: false }), async (req, res, next) => {
   try {
-    const user = await User.findOne({ _id: req.params.id })
-    if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
-    res.json(user)
+    const user = await User.findOne({ _id: req.params.id }).populate('friends', { name: 1, phone: 1, about: 1 });
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    res.json(user);
   } catch (e) {
-    next(e)
+    next(e);
   }
 });
 
@@ -57,7 +60,7 @@ router.post('/', passport.authenticate(['jwt'], { session: false }), async (req,
   } catch (e) {
     next(e)
   }
-})
+});
 
 router.patch('/:id', passport.authenticate(['jwt'], { session: false }), async (req, res, next) => {
   try {
@@ -85,7 +88,7 @@ router.patch('/:id', passport.authenticate(['jwt'], { session: false }), async (
   } catch (e) {
     next(e)
   }
-})
+});
 
 router.delete('/:id', passport.authenticate(['jwt'], { session: false }), async (req, res, next) => {
   try {
@@ -96,6 +99,37 @@ router.delete('/:id', passport.authenticate(['jwt'], { session: false }), async 
   } catch (e) {
     next(e)
   }
-})
+});
+
+router.delete("/:id/friends/:friendId", passport.authenticate(['jwt'], { session: false }), async (req, res, next) => {
+  try {
+
+    const id = req.params.id;
+    const friendId = req.params.id;
+
+    const { friends } = await User
+      .findById(id)
+      .populate({
+        path: 'friends',
+        select: { name: 1 },
+        match: { _id: friendId },
+        options: { limit: 1 },
+      });
+
+    const friend = friends[0];
+
+    if (!Boolean(friend)) throw new ApiError(httpStatus.BAD_REQUEST, `Sorry but you don't have such a friend.`);
+
+    // Remove the friend from friends list for both.
+    Promise.all([
+      User.findByIdAndUpdate(id, { $pull: { friends: friendId } }),
+      User.findByIdAndUpdate(friendId, { $pull: { friends: id } }),
+    ]);
+
+    res.status(httpStatus.OK).send({ message: `You are no longer friend with ${friend.name}.` });
+  } catch (e) {
+    next(e)
+  }
+});
 
 export default router;

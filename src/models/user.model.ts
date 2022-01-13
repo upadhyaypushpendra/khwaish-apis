@@ -4,11 +4,13 @@ import privateValidator from 'mongoose-private'
 import { decrypt, encrypt } from "../utils/cryptoUtil";
 
 export interface IUser {
+  [x: string]: unknown;
   name: string
   phone: string
   about: string
   hash_password: string
   salt: string
+  friends: IUser[];
   created_at: string
   updated_at: string
 }
@@ -54,6 +56,7 @@ const schema = new Schema<IUserModel>(
       private: true,
       required: true,
     },
+    friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     created_at: {
       type: String,
       default: new Date().toISOString(),
