@@ -26,7 +26,7 @@ router.get('/:id/received', passport.authenticate(['jwt'], { session: false }), 
   if (Boolean(req.params.id)) {
     const requests = await Request
       .find({ receiver: req.params.id })
-      .populate('receiver', { 'name': 1, 'phone': 1, 'about': 1 });
+      .populate('sender', { 'name': 1, 'phone': 1, 'about': 1 });
     res.json({
       error: false,
       message: "Requests fetched successfully.",
