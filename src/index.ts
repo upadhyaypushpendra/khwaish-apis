@@ -6,6 +6,7 @@
 
 import app from './app';
 import http from 'http';
+import startWebSocketServer from './webSocketServer';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const debug = require('debug')('express-locallibrary:server');
 
@@ -21,6 +22,11 @@ app.set('port', port);
  */
 
 const server = http.createServer(app);
+
+/**
+ * Create websocket server
+ */
+startWebSocketServer(server);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -54,7 +60,7 @@ function normalizePort(val: any) {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error :any) {
+function onError(error: any) {
   if (error.syscall !== 'listen') {
     throw error;
   }

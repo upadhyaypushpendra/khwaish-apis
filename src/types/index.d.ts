@@ -17,3 +17,17 @@ type DecodedToken = {
   userId?: string,
   visitorId?: string,
 };
+
+enum WebSocketMessageEvent {
+  verify = 'verify',
+  send_message = 'send_message',
+  message_received = 'message_received',
+  verified = 'verified',
+  connected = 'connected',
+}
+
+type WebSocketMessageData = {
+  status: 'ok' | 'error',
+  event: WebSocketMessageEvent,
+  data: Record<string, any>,
+}
