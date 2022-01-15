@@ -107,7 +107,7 @@ router.delete("/:id/friends/:friendId", passport.authenticate(['jwt'], { session
     const id = req.params.id;
     const friendId = req.params.friendId;
 
-    console.log('DEBUG::id,friendId', id, friendId);
+    // console.log('DEBUG::id,friendId', id, friendId);
     const { friends } = await User
       .findById(id)
       .populate({

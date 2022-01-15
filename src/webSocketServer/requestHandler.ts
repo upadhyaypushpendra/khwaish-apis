@@ -20,25 +20,24 @@ export default function getRequestHanlder(activeClients: ConnectionMap, tempClie
     }
 
     try {
-      const tempID = Date.now().toString() + (Math.random() * 100000).toString();
+      const tempId = Date.now().toString() + (Math.random() * 100000).toString();
 
       const connection = request.accept('echo-protocol', request.origin);
 
-      tempClients.set(tempID, connection);
+      tempClients.set(tempId, connection);
 
       connection.on('message', getMessageHanlder({ activeClients, connection, tempClients }));
 
-      logger.info('DEBUG::onRequestHandler -> new client connected: %s , %s', connection.remoteAddress, tempID);
+      logger.info('DEBUG::onRequestHandler -> new client connected: %s , %s', connection.remoteAddress, tempId);
 
-      setTimeout(() => {
-        connection.send(JSON.stringify({
-          status: 'ok',
-          event: 'connected',
-          data: {
-            tempID,
-          }
-        }))
-      }, 5000);
+      connection.send(JSON.stringify({
+        status: 'ok',
+        event: 'connected',
+        data: {
+          tempId,
+        }
+      }))
+
     } catch (error) {
       logger.error(error);
       logger.info(' Connection from origin ' + request.origin + ' rejected.');

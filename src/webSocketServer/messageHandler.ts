@@ -16,7 +16,8 @@ const messageActions = {
 
     if (activeClients.has(data.to)) {
       activeClients.get(data.to).sendUTF(JSON.stringify({
-        action: WebSocketMessageEvent.message_received,
+        status: 'ok',
+        event: "message_received",
         data
       }))
     }
@@ -24,11 +25,11 @@ const messageActions = {
   "verify": async ({ activeClients, tempClients, data, connection }: MessageActionHandlerArgs) => {
     logger.debug('DEBUG::onMessageHanlder -> verify');
 
-    const tempID = data.tempID;
+    const tempId = data.tempId;
     const accessToken = data.token;
     try {
-      // Close the connection if tempID not available, token not available or tempClient not available.
-      if (!(Boolean(tempID) && Boolean(accessToken) && tempClients.has(tempID))) {
+      // Close the connection if tempId not available, token not available or tempClient not available.
+      if (!(Boolean(tempId) && Boolean(accessToken) && tempClients.has(tempId))) {
         logger.info('onMessageHanlder -> verify: Invalid data: %o, closing connection', data);
         connection.close();
         return;
@@ -36,15 +37,15 @@ const messageActions = {
 
       const userId = await verifyAccessToken(accessToken);
 
-      activeClients.set(userId, tempClients.get(tempID));
+      activeClients.set(userId, tempClients.get(tempId));
 
       connection.send(JSON.stringify({
         status: 'ok',
-        event: WebSocketMessageEvent.verified,
+        event: "verified",
       }))
     } catch (error) {
       logger.error(error);
-      logger.info('onMessageHanlder -> verify: Invalid token, closing connection, for user: %s', tempID);
+      logger.info('onMessageHanlder -> verify: Invalid token, closing connection, for user: %s', tempId);
     }
   },
 
@@ -57,7 +58,7 @@ export type GetMessageHandlerArgs = {
 };
 
 export default function getMessageHanlder({ activeClients, connection, tempClients }: GetMessageHandlerArgs) {
-  return async (message: Message) => {
+  const messageHandler = async (message: Message) => {
     logger.debug('DEBUG::onMessageHanlder -> New message received: %o', message);
     if (message.type === 'utf8') {
       const webSocketMessage = JSON.parse(message.utf8Data) as WebSocketMessageData;
@@ -73,5 +74,6 @@ export default function getMessageHanlder({ activeClients, connection, tempClien
     } else {
       logger.warn('onMessageHanlder -> Invalid message type: ', message.type);
     }
-  }
+  };
+  return messageHandler;
 };
