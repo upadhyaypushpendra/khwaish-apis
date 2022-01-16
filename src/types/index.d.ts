@@ -24,6 +24,8 @@ enum WebSocketMessageEvent {
   message_received = 'message_received',
   verified = 'verified',
   connected = 'connected',
+  active_status = 'active_status',
+  typing = 'typing',
 }
 
 type WebSocketMessageData = {
