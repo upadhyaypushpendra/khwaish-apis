@@ -6,7 +6,24 @@ export default function getCloseConnectionHanlder(activeClients: Map<string, con
   return async (connection: connection, reason: number, desc: string) => {
     logger.info('DEBUG::onCloseConnectionHandler -> ');
     try {
-      const userId = await verifyAccessToken(desc);
+
+      let userId;
+      for (const [clientId, clientConnection] of activeClients) {
+        if (clientConnection === connection) {
+          userId = clientId;
+          break;
+        }
+      }
+
+      if (!Boolean(userId)) {
+        logger.info('DEBUG::onCloseConnectionHandler: No user found');
+        return;
+      }
+
+      if (!activeClients.has(userId)) {
+        logger.info('DEBUG::onCloseConnectionHandler: No active client found');
+        return;
+      }
 
       activeClients.delete(userId);
 
@@ -17,6 +34,15 @@ export default function getCloseConnectionHanlder(activeClients: Map<string, con
           data: {
             userId: userId,
             active: false,
+          }
+        }));
+        clientConnection.send(JSON.stringify({
+          status: 'ok',
+          event: 'typing',
+          data: {
+            from: userId,
+            to: clientId,
+            isTyping: false,
           }
         }));
       };
